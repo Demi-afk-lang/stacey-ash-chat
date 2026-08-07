@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Stacey & Ash</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: sans-serif; background: #0d0d0d; color: #ffffff; margin: 0; padding: 12px; }
+        
+        /* تخصيص شريط التمرير (Scrollbar) المظلم والرفيع */
+        #chatbox::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #chatbox::-webkit-scrollbar-track,
+        body::-webkit-scrollbar-track {
+            background: #0d0d0d;
+        }
+
+        #chatbox::-webkit-scrollbar-thumb,
+        body::-webkit-scrollbar-thumb {
+            background: #2a2a2a;
+            border-radius: 10px;
+        }
+
+        #chatbox::-webkit-scrollbar-thumb:hover,
+        body::-webkit-scrollbar-thumb:hover {
+            background: #6b0c10;
+        }
+
+        .header { text-align: center; font-weight: bold; padding: 10px 0 15px 0; font-size: 20px; color: #ff2a2a; }
+
+        #chatbox { height: 360px; background: #0d0d0d; overflow-y: scroll; padding: 10px; margin-bottom: 15px; }
+        
+        .msg-line { margin-bottom: 14px; clear: both; position: relative; }
+        
+        .msg-right { text-align: right; }
+        .msg-right .sender-name { font-size: 11px; color: #a1a1a1; margin-bottom: 3px; font-weight: bold; }
+        .msg-right .bubble { display: inline-block; padding: 10px 14px; border-radius: 12px; font-size: 14px; background: #222222; color: #ffffff; border: 1px solid #333333; max-width: 80%; white-space: pre-wrap; word-wrap: break-word; text-align: right; }
+        
+        .msg-left { text-align: left; }
+        .msg-left .sender-name { font-size: 11px; color: #a1a1a1; margin-bottom: 3px; font-weight: bold; }
+        .msg-left .bubble { display: inline-block; padding: 10px 14px; border-radius: 12px; font-size: 14px; background: #3a080a; color: #ffb3b3; border: 1px solid #6b1115; max-width: 80%; white-space: pre-wrap; word-wrap: break-word; text-align: left; }
+
+        .reply-quote { background: rgba(0,0,0,0.3); border-left: 3px solid #ff2a2a; padding: 4px 8px; margin-bottom: 6px; font-size: 12px; border-radius: 4px; color: #ccc; text-align: left; }
+        
+        .chat-file-img { max-width: 100%; border-radius: 8px; margin-top: 5px; display: block; cursor: pointer; }
+        .chat-file-link { display: inline-block; background: rgba(255,255,255,0.1); padding: 6px 10px; border-radius: 6px; color: #64b5f6; text-decoration: none; font-size: 13px; margin-top: 5px; }
+
+        #reply-preview, #attachment-preview { display: none; background: #161616; border-left: 3px solid #ff2a2a; padding: 6px 10px; margin-bottom: 6px; font-size: 12px; border-radius: 4px; color: #aaa; }
+        #reply-preview b, #attachment-preview b { color: #fff; }
+        .cancel-btn { float: right; cursor: pointer; color: #ff3b30; font-weight: bold; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999; text-align: center; }
+        .modal-content { position: relative; top: 38%; background: #1c1c1e; border: 1px solid #333; width: 80%; max-width: 280px; margin: 0 auto; border-radius: 12px; overflow: hidden; }
+        .modal-btn { display: block; width: 100%; padding: 13px; background: none; border: none; color: #fff; font-size: 15px; border-bottom: 1px solid #2c2c2e; cursor: pointer; text-align: center; }
+        .modal-btn.delete { color: #ff3b30; font-weight: bold; }
+        .modal-btn.cancel { color: #0a84ff; border-bottom: none; }
+
+        .controls { background: #0d0d0d; padding-top: 5px; }
+        
+        select#username {
+            font-size: 14px;
+            padding: 8px 12px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background: #161616;
+            color: #fff;
+            width: 100%;
+            margin-bottom: 8px;
+            outline: none;
+            cursor: pointer;
+        }
+        
+        .input-row { display: flex; gap: 6px; align-items: center; }
+        textarea { flex: 1; height: 42px; font-size: 14px; padding: 8px; border: 1px solid #5a0f13; border-radius: 8px; background: #111111; color: #fff; resize: none; font-family: sans-serif; }
+        
+        .attach-btn { width: 42px; height: 42px; background: #1c1c1e; color: #fff; border: 1px solid #333; border-radius: 8px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        button.send-btn { width: 65px; height: 42px; font-size: 14px; background: #6b0c10; color: #fff; border: 1px solid #8f1318; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="header">✨ Stacey & Ash Corner ✨</div>
+
+    <div id="chatbox"></div>
+
+    <div class="controls">
+        <select id="username" onchange="getMessages()">
+            <option value="ash" selected>ash</option>
+            <option value="stacey">stacey</option>
+        </select>
+        
+        <div id="reply-preview">
+            Replying to <b id="reply-user"></b>: <span id="reply-text-preview"></span>
+            <span class="cancel-btn" onclick="cancelReply()">✕</span>
+        </div>
+
+        <div id="attachment-preview">
+            📎 Attached: <b id="attach-name"></b>
+            <span class="cancel-btn" onclick="cancelAttachment()">✕</span>
+        </div>
+
+        <div class="input-row">
+            <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(event)">
+            <button class="attach-btn" onclick="document.getElementById('fileInput').click()">📎</button>
+            
+            <textarea id="messageInput" placeholder="Type a message..." onkeydown="handleKeyDown(event)"></textarea>
+            <button class="send-btn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <div id="msgModal" class="modal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="modal-btn" onclick="actionReply()">↩️ Reply</button>
+            <button class="modal-btn" onclick="actionCopy()">📋 Copy Text</button>
+            <button class="modal-btn delete" onclick="actionDelete()">🗑️ Delete</button>
+            <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        var lastMessageCount = 0;
+        var selectedMsg = null;
+        var activeReplyTo = null;
+        var pendingFile = null;
+        var isModalOpen = false;
+
+        function getMessages() {
+            if (isModalOpen) return;
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/messages', true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var data = JSON.parse(xhr.responseText);
+                    var chatbox = document.getElementById('chatbox');
+                    var currentUser = document.getElementById('username').value.trim().toLowerCase();
+                    var html = '';
+                    
+                    for (var i = 0; i < data.length; i++) {
+                        var msg = data[i];
+                        var isMe = (msg.sender.trim().toLowerCase() === currentUser);
+                        var alignClass = isMe ? 'msg-right' : 'msg-left';
+
+                        var replyHtml = '';
+                        if (msg.replyTo) {
+                            replyHtml = '<div class="reply-quote"><b>' + msg.replyTo.sender + '</b>: ' + msg.replyTo.text + '</div>';
+                        }
+
+                        var fileHtml = '';
+                        if (msg.file) {
+                            if (msg.file.type === 'image') {
+                                fileHtml = '<a href="' + msg.file.url + '" target="_blank"><img src="' + msg.file.url + '" class="chat-file-img" /></a>';
+                            } else {
+                                fileHtml = '<br><a href="' + msg.file.url + '" download class="chat-file-link">📁 Download: ' + msg.file.originalName + '</a>';
+                            }
+                        }
+
+                        html += '<div class="msg-line ' + alignClass + '" id="msg-' + msg.id + '">' +
+                                '<div class="sender-name">' + msg.sender + '</div>' +
+                                '<div class="bubble" ' +
+                                    'ontouchstart="startHold(event, \'' + msg.id + '\', \'' + encodeURIComponent(msg.sender) + '\', \'' + encodeURIComponent(msg.text) + '\')" ' +
+                                    'ontouchend="cancelHold()" ' +
+                                    'oncontextmenu="rightClickMenu(event, \'' + msg.id + '\', \'' + encodeURIComponent(msg.sender) + '\', \'' + encodeURIComponent(msg.text) + '\')">' +
+                                    replyHtml + (msg.text ? msg.text : '') + fileHtml +
+                                '</div>' +
+                                '</div>';
+                    }
+
+                    chatbox.innerHTML = html;
+
+                    if (data.length > lastMessageCount) {
+                        chatbox.scrollTop = chatbox.scrollHeight;
+                        lastMessageCount = data.length;
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        function handleFileSelect(e) {
+            var file = e.target.files[0];
+            if (!file) return;
+
+            var formData = new FormData();
+            formData.append('file', file);
+
+            document.getElementById('attach-name').innerText = 'Uploading...';
+            document.getElementById('attachment-preview').style.display = 'block';
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/upload', true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var res = JSON.parse(xhr.responseText);
+                    pendingFile = res;
+                    document.getElementById('attach-name').innerText = file.name;
+                }
+            };
+            xhr.send(formData);
+        }
+
+        function cancelAttachment() {
+            pendingFile = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('attachment-preview').style.display = 'none';
+        }
+
+        var holdTimer = null;
+        function startHold(e, id, sender, text) {
+            holdTimer = setTimeout(function() {
+                openModal(id, decodeURIComponent(sender), decodeURIComponent(text));
+            }, 500);
+        }
+        function cancelHold() {
+            if (holdTimer) clearTimeout(holdTimer);
+        }
+
+        function rightClickMenu(e, id, sender, text) {
+            e.preventDefault();
+            openModal(id, decodeURIComponent(sender), decodeURIComponent(text));
+        }
+
+        function openModal(id, sender, text) {
+            selectedMsg = { id: id, sender: sender, text: text };
+            isModalOpen = true;
+            document.getElementById('msgModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            selectedMsg = null;
+            isModalOpen = false;
+            document.getElementById('msgModal').style.display = 'none';
+        }
+
+        function actionReply() {
+            if (!selectedMsg) return;
+            activeReplyTo = { sender: selectedMsg.sender, text: selectedMsg.text };
+            document.getElementById('reply-user').innerText = selectedMsg.sender;
+            document.getElementById('reply-text-preview').innerText = selectedMsg.text;
+            document.getElementById('reply-preview').style.display = 'block';
+            closeModal();
+            document.getElementById('messageInput').focus();
+        }
+
+        function cancelReply() {
+            activeReplyTo = null;
+            document.getElementById('reply-preview').style.display = 'none';
+        }
+
+        function actionCopy() {
+            if (!selectedMsg) return;
+            navigator.clipboard.writeText(selectedMsg.text).then(function() {
+                alert('Copied to clipboard!');
+            });
+            closeModal();
+        }
+
+        function actionDelete() {
+            if (!selectedMsg) return;
+            var id = selectedMsg.id;
+            closeModal();
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/delete?id=' + id, true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) getMessages();
+            };
+            xhr.send();
+        }
+
+        function sendMessage() {
+            var user = document.getElementById('username').value || 'ash';
+            var input = document.getElementById('messageInput');
+            var text = input.value;
+            
+            if (!text.replace(/\s/g, '') && !pendingFile) return;
+
+            var payload = { 
+                sender: user, 
+                text: text, 
+                replyTo: activeReplyTo,
+                file: pendingFile
+            };
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/messages', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    cancelReply();
+                    cancelAttachment();
+                    getMessages();
+                }
+            };
+            xhr.send(JSON.stringify(payload));
+            input.value = '';
+        }
+
+        function handleKeyDown(e) {
+            var keyCode = e.keyCode || e.which;
+            if (keyCode === 13 && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        setInterval(getMessages, 1000);
+    </script>
+</body>
+</html>
