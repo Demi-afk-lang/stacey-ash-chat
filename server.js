@@ -7,10 +7,10 @@ const app = express();
 app.use(express.json());
 app.use(express.static('public'));
 
-// استخدام الـ Memory Storage بدلاً من Disk Storage ليتوافق مع Vercel
+// استخدام Memory Storage ليتوافق مع Serverless Environment
 const upload = multer({ 
     storage: multer.memoryStorage(),
-    limits: { fileSize: 4 * 1024 * 1024 } // حد أقصى 4 ميجا
+    limits: { fileSize: 4 * 1024 * 1024 } // 4MB Max
 });
 
 let messages = [];
@@ -24,7 +24,7 @@ app.post('/api/messages', upload.single('file'), (req, res) => {
     let fileData = null;
 
     if (req.file) {
-        // تحويل الصورة لـ Base64 لتعمل بدون نُظم ملفات
+        // تحويل الملف لـ Base64 لعدم الحاجة للتخزين على الهارد
         const mimeType = req.file.mimetype;
         const base64 = req.file.buffer.toString('base64');
         fileData = `data:${mimeType};base64,${base64}`;
