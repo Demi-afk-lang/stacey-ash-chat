@@ -7,7 +7,6 @@
     <style>
         * { box-sizing: border-box; }
         
-        /* متغيرات الثيم الافتراضي (Gothic Dark) */
         :root {
             --bg-color: #0d0d0d;
             --header-color: #ff2a2a;
@@ -23,7 +22,6 @@
             --scrollbar-thumb: #6b0c10;
         }
 
-        /* Cyberpunk Theme */
         body.cyber {
             --bg-color: #050515;
             --header-color: #00f0ff;
@@ -39,7 +37,6 @@
             --scrollbar-thumb: #00f0ff;
         }
 
-        /* Emerald Theme */
         body.emerald {
             --bg-color: #06140e;
             --header-color: #10b981;
@@ -55,38 +52,52 @@
             --scrollbar-thumb: #10b981;
         }
 
-        body { font-family: sans-serif; background: var(--bg-color); color: #ffffff; margin: 0; padding: 12px; transition: all 0.3s ease; }
+        body { 
+            font-family: sans-serif; 
+            background: var(--bg-color); 
+            color: #ffffff; 
+            margin: 0; 
+            padding: 20px 12px; 
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* حاوية مركزية تلم تصميم التطبيق ليبقى ملموم ومحاكي للموبايل/النافذة الصغيرة */
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+        }
         
-        /* Scrollbar */
         #chatbox::-webkit-scrollbar, body::-webkit-scrollbar { width: 6px; }
         #chatbox::-webkit-scrollbar-track, body::-webkit-scrollbar-track { background: var(--bg-color); }
         #chatbox::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 10px; }
 
-        .header { text-align: center; font-weight: bold; padding: 5px 0 10px 0; font-size: 20px; color: var(--header-color); }
+        .header { text-align: center; font-weight: bold; padding: 0 0 12px 0; font-size: 20px; color: var(--header-color); }
 
-        .top-bar { display: flex; gap: 8px; margin-bottom: 10px; }
+        .top-bar { display: flex; gap: 8px; margin-bottom: 12px; }
         select#themeSelect, select#username {
             flex: 1; font-size: 13px; padding: 6px 10px; border: 1px solid #333;
             border-radius: 6px; background: #161616; color: #fff; outline: none; cursor: pointer;
         }
 
-        #chatbox { height: 360px; background: var(--bg-color); overflow-y: scroll; padding: 10px; margin-bottom: 10px; }
+        #chatbox { height: 450px; background: var(--bg-color); overflow-y: scroll; padding: 10px; margin-bottom: 10px; border: 1px solid #222; border-radius: 10px; }
         
         .msg-line { margin-bottom: 14px; clear: both; position: relative; }
         .msg-right { text-align: right; }
         .msg-right .sender-name { font-size: 11px; color: #a1a1a1; margin-bottom: 3px; font-weight: bold; }
-        .msg-right .bubble { display: inline-block; padding: 10px 14px; border-radius: 12px; font-size: 14px; background: var(--bubble-right-bg); color: var(--bubble-right-text); border: 1px solid var(--bubble-right-border); max-width: 80%; white-space: pre-wrap; word-wrap: break-word; text-align: right; }
+        .msg-right .bubble { display: inline-block; padding: 10px 14px; border-radius: 12px; font-size: 14px; background: var(--bubble-right-bg); color: var(--bubble-right-text); border: 1px solid var(--bubble-right-border); max-width: 85%; white-space: pre-wrap; word-wrap: break-word; text-align: right; }
         
         .msg-left { text-align: left; }
         .msg-left .sender-name { font-size: 11px; color: #a1a1a1; margin-bottom: 3px; font-weight: bold; }
-        .msg-left .bubble { display: inline-block; padding: 10px 14px; border-radius: 12px; font-size: 14px; background: var(--bubble-left-bg); color: var(--bubble-left-text); border: 1px solid var(--bubble-left-border); max-width: 80%; white-space: pre-wrap; word-wrap: break-word; text-align: left; }
+        .msg-left .bubble { display: inline-block; padding: 10px 14px; border-radius: 12px; font-size: 14px; background: var(--bubble-left-bg); color: var(--bubble-left-text); border: 1px solid var(--bubble-left-border); max-width: 85%; white-space: pre-wrap; word-wrap: break-word; text-align: left; }
 
         .reply-quote { background: rgba(0,0,0,0.3); border-left: 3px solid var(--header-color); padding: 4px 8px; margin-bottom: 6px; font-size: 12px; border-radius: 4px; color: #ccc; text-align: left; }
         
         .chat-file-img { max-width: 100%; border-radius: 8px; margin-top: 5px; display: block; cursor: pointer; }
         .chat-file-link { display: inline-block; background: rgba(255,255,255,0.1); padding: 6px 10px; border-radius: 6px; color: #64b5f6; text-decoration: none; font-size: 13px; margin-top: 5px; }
 
-        /* Reactions Styling */
         .reactions-wrapper { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
         .msg-right .reactions-wrapper { justify-content: flex-end; }
         .react-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 12px; padding: 2px 6px; font-size: 11px; cursor: pointer; }
@@ -114,39 +125,41 @@
 </head>
 <body>
 
-    <div class="header">✨ Stacey & Ash Corner ✨</div>
+    <div class="app-container">
+        <div class="header">✨ Stacey & Ash Corner ✨</div>
 
-    <div class="top-bar">
-        <select id="username" onchange="getMessages()">
-            <option value="ash" selected>ash</option>
-            <option value="stacey">stacey</option>
-        </select>
-        
-        <select id="themeSelect" onchange="changeTheme(this.value)">
-            <option value="gothic">🔴 Gothic Dark</option>
-            <option value="cyber">🔵 Cyberpunk</option>
-            <option value="emerald">🟢 Emerald</option>
-        </select>
-    </div>
-
-    <div id="chatbox"></div>
-
-    <div class="controls">
-        <div id="reply-preview">
-            Replying to <b id="reply-user"></b>: <span id="reply-text-preview"></span>
-            <span class="cancel-btn" onclick="cancelReply()">✕</span>
+        <div class="top-bar">
+            <select id="username" onchange="getMessages()">
+                <option value="ash" selected>ash</option>
+                <option value="stacey">stacey</option>
+            </select>
+            
+            <select id="themeSelect" onchange="changeTheme(this.value)">
+                <option value="gothic">🔴 Gothic Dark</option>
+                <option value="cyber">🔵 Cyberpunk</option>
+                <option value="emerald">🟢 Emerald</option>
+            </select>
         </div>
 
-        <div id="attachment-preview">
-            📎 Attached: <b id="attach-name"></b>
-            <span class="cancel-btn" onclick="cancelAttachment()">✕</span>
-        </div>
+        <div id="chatbox"></div>
 
-        <div class="input-row">
-            <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(event)">
-            <button class="attach-btn" onclick="document.getElementById('fileInput').click()">📎</button>
-            <textarea id="messageInput" placeholder="Type a message..." onkeydown="handleKeyDown(event)"></textarea>
-            <button class="send-btn" onclick="sendMessage()">Send</button>
+        <div class="controls">
+            <div id="reply-preview">
+                Replying to <b id="reply-user"></b>: <span id="reply-text-preview"></span>
+                <span class="cancel-btn" onclick="cancelReply()">✕</span>
+            </div>
+
+            <div id="attachment-preview">
+                📎 Attached: <b id="attach-name"></b>
+                <span class="cancel-btn" onclick="cancelAttachment()">✕</span>
+            </div>
+
+            <div class="input-row">
+                <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(event)">
+                <button class="attach-btn" onclick="document.getElementById('fileInput').click()">📎</button>
+                <textarea id="messageInput" placeholder="Type a message..." onkeydown="handleKeyDown(event)"></textarea>
+                <button class="send-btn" onclick="sendMessage()">Send</button>
+            </div>
         </div>
     </div>
 
