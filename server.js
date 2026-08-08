@@ -54,7 +54,9 @@ app.delete('/api/messages', (req, res) => {
     messages = [];
     res.json({ success: true });
 });
-
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 module.exports = app;
 
 if (require.main === module) {
