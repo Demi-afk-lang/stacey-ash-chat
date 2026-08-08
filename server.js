@@ -4,25 +4,25 @@ const multer = require('multer');
 
 const app = express();
 
-// استخدام Memory Storage بدلاً من Disk Storage لتوافق Vercel
+// استخدام Memory Storage لضمان التوافق مع Vercel
 const upload = multer({ 
     storage: multer.memoryStorage(),
-    limits: { fileSize: 10 * 1024 * 1024 } // حد أقصى 10 ميجا
+    limits: { fileSize: 10 * 1024 * 1024 } // 10 ميجابايت كحد أقصى
 });
 
-// مصفوفة الذاكرة لحفظ الرسائل مؤقتاً
+// مصفوفة حفظ الرسائل في الذاكرة
 let messages = [];
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// جلب الرسائل
+// جلب جميع الرسائل
 app.get('/api/messages', (req, res) => {
     res.json(messages);
 });
 
-// رفع الملفات وتحويلها لـ Base64 لتعمل بدون Storage محلي
+// رفع الملفات وتحويلها لـ Base64
 app.post('/api/upload', upload.single('file'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
@@ -44,9 +44,21 @@ app.post('/api/messages', (req, res) => {
             sender: String(sender), 
             text: text ? String(text) : '',
             file: file || null,
-            replyTo: (replyTo && replyTo.text) ? replyTo : null
+            replyTo: (replyTo && replyTo.text) ? replyTo : null,
+            reactions: {}
         };
         messages.push(newMsg);
+    }
+    res.json({ status: 'ok' });
+});
+
+// إضافة تفاعل (Reaction) على رسالة
+app.post('/api/react', (req, res) => {
+    const { id, emoji } = req.query;
+    const msg = messages.find(m => String(m.id) === String(id));
+    if (msg) {
+        if (!msg.reactions) msg.reactions = {};
+        msg.reactions[emoji] = (msg.reactions[emoji] || 0) + 1;
     }
     res.json({ status: 'ok' });
 });

@@ -6,51 +6,97 @@
     <title>Stacey & Ash</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: sans-serif; background: #0d0d0d; color: #ffffff; margin: 0; padding: 12px; }
         
-        /* تخصيص شريط التمرير (Scrollbar) المظلم والرفيع */
-        #chatbox::-webkit-scrollbar,
-        body::-webkit-scrollbar {
-            width: 6px;
+        /* متغيرات الثيم الافتراضي (Gothic Dark) */
+        :root {
+            --bg-color: #0d0d0d;
+            --header-color: #ff2a2a;
+            --bubble-right-bg: #222222;
+            --bubble-right-text: #ffffff;
+            --bubble-right-border: #333333;
+            --bubble-left-bg: #3a080a;
+            --bubble-left-text: #ffb3b3;
+            --bubble-left-border: #6b1115;
+            --btn-bg: #6b0c10;
+            --btn-border: #8f1318;
+            --input-border: #5a0f13;
+            --scrollbar-thumb: #6b0c10;
         }
 
-        #chatbox::-webkit-scrollbar-track,
-        body::-webkit-scrollbar-track {
-            background: #0d0d0d;
+        /* Cyberpunk Theme */
+        body.cyber {
+            --bg-color: #050515;
+            --header-color: #00f0ff;
+            --bubble-right-bg: #101530;
+            --bubble-right-text: #ffffff;
+            --bubble-right-border: #1f295d;
+            --bubble-left-bg: #2d0036;
+            --bubble-left-text: #ff007f;
+            --bubble-left-border: #7b0080;
+            --btn-bg: #00f0ff;
+            --btn-border: #00a8ff;
+            --input-border: #00f0ff;
+            --scrollbar-thumb: #00f0ff;
         }
 
-        #chatbox::-webkit-scrollbar-thumb,
-        body::-webkit-scrollbar-thumb {
-            background: #2a2a2a;
-            border-radius: 10px;
+        /* Emerald Theme */
+        body.emerald {
+            --bg-color: #06140e;
+            --header-color: #10b981;
+            --bubble-right-bg: #11261d;
+            --bubble-right-text: #ffffff;
+            --bubble-right-border: #1e3e30;
+            --bubble-left-bg: #062c1b;
+            --bubble-left-text: #a7f3d0;
+            --bubble-left-border: #047857;
+            --btn-bg: #059669;
+            --btn-border: #10b981;
+            --input-border: #059669;
+            --scrollbar-thumb: #10b981;
         }
 
-        #chatbox::-webkit-scrollbar-thumb:hover,
-        body::-webkit-scrollbar-thumb:hover {
-            background: #6b0c10;
+        body { font-family: sans-serif; background: var(--bg-color); color: #ffffff; margin: 0; padding: 12px; transition: all 0.3s ease; }
+        
+        /* Scrollbar */
+        #chatbox::-webkit-scrollbar, body::-webkit-scrollbar { width: 6px; }
+        #chatbox::-webkit-scrollbar-track, body::-webkit-scrollbar-track { background: var(--bg-color); }
+        #chatbox::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 10px; }
+
+        .header { text-align: center; font-weight: bold; padding: 5px 0 10px 0; font-size: 20px; color: var(--header-color); }
+
+        .top-bar { display: flex; gap: 8px; margin-bottom: 10px; }
+        select#themeSelect, select#username {
+            flex: 1; font-size: 13px; padding: 6px 10px; border: 1px solid #333;
+            border-radius: 6px; background: #161616; color: #fff; outline: none; cursor: pointer;
         }
 
-        .header { text-align: center; font-weight: bold; padding: 10px 0 15px 0; font-size: 20px; color: #ff2a2a; }
-
-        #chatbox { height: 360px; background: #0d0d0d; overflow-y: scroll; padding: 10px; margin-bottom: 15px; }
+        #chatbox { height: 360px; background: var(--bg-color); overflow-y: scroll; padding: 10px; margin-bottom: 10px; }
         
         .msg-line { margin-bottom: 14px; clear: both; position: relative; }
-        
         .msg-right { text-align: right; }
         .msg-right .sender-name { font-size: 11px; color: #a1a1a1; margin-bottom: 3px; font-weight: bold; }
-        .msg-right .bubble { display: inline-block; padding: 10px 14px; border-radius: 12px; font-size: 14px; background: #222222; color: #ffffff; border: 1px solid #333333; max-width: 80%; white-space: pre-wrap; word-wrap: break-word; text-align: right; }
+        .msg-right .bubble { display: inline-block; padding: 10px 14px; border-radius: 12px; font-size: 14px; background: var(--bubble-right-bg); color: var(--bubble-right-text); border: 1px solid var(--bubble-right-border); max-width: 80%; white-space: pre-wrap; word-wrap: break-word; text-align: right; }
         
         .msg-left { text-align: left; }
         .msg-left .sender-name { font-size: 11px; color: #a1a1a1; margin-bottom: 3px; font-weight: bold; }
-        .msg-left .bubble { display: inline-block; padding: 10px 14px; border-radius: 12px; font-size: 14px; background: #3a080a; color: #ffb3b3; border: 1px solid #6b1115; max-width: 80%; white-space: pre-wrap; word-wrap: break-word; text-align: left; }
+        .msg-left .bubble { display: inline-block; padding: 10px 14px; border-radius: 12px; font-size: 14px; background: var(--bubble-left-bg); color: var(--bubble-left-text); border: 1px solid var(--bubble-left-border); max-width: 80%; white-space: pre-wrap; word-wrap: break-word; text-align: left; }
 
-        .reply-quote { background: rgba(0,0,0,0.3); border-left: 3px solid #ff2a2a; padding: 4px 8px; margin-bottom: 6px; font-size: 12px; border-radius: 4px; color: #ccc; text-align: left; }
+        .reply-quote { background: rgba(0,0,0,0.3); border-left: 3px solid var(--header-color); padding: 4px 8px; margin-bottom: 6px; font-size: 12px; border-radius: 4px; color: #ccc; text-align: left; }
         
         .chat-file-img { max-width: 100%; border-radius: 8px; margin-top: 5px; display: block; cursor: pointer; }
         .chat-file-link { display: inline-block; background: rgba(255,255,255,0.1); padding: 6px 10px; border-radius: 6px; color: #64b5f6; text-decoration: none; font-size: 13px; margin-top: 5px; }
 
-        #reply-preview, #attachment-preview { display: none; background: #161616; border-left: 3px solid #ff2a2a; padding: 6px 10px; margin-bottom: 6px; font-size: 12px; border-radius: 4px; color: #aaa; }
-        #reply-preview b, #attachment-preview b { color: #fff; }
+        /* Reactions Styling */
+        .reactions-wrapper { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+        .msg-right .reactions-wrapper { justify-content: flex-end; }
+        .react-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 12px; padding: 2px 6px; font-size: 11px; cursor: pointer; }
+        .react-add { color: #aaa; }
+        .react-picker { display: none; background: #1a1a1a; border: 1px solid #333; border-radius: 20px; padding: 4px 8px; gap: 8px; margin-top: 4px; width: fit-content; }
+        .msg-right .react-picker { margin-left: auto; }
+        .react-picker span { cursor: pointer; font-size: 16px; transition: transform 0.1s; }
+        .react-picker span:hover { transform: scale(1.2); }
+
+        #reply-preview, #attachment-preview { display: none; background: #161616; border-left: 3px solid var(--header-color); padding: 6px 10px; margin-bottom: 6px; font-size: 12px; border-radius: 4px; color: #aaa; }
         .cancel-btn { float: right; cursor: pointer; color: #ff3b30; font-weight: bold; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999; text-align: center; }
@@ -59,40 +105,33 @@
         .modal-btn.delete { color: #ff3b30; font-weight: bold; }
         .modal-btn.cancel { color: #0a84ff; border-bottom: none; }
 
-        .controls { background: #0d0d0d; padding-top: 5px; }
-        
-        select#username {
-            font-size: 14px;
-            padding: 8px 12px;
-            border: 1px solid #333;
-            border-radius: 6px;
-            background: #161616;
-            color: #fff;
-            width: 100%;
-            margin-bottom: 8px;
-            outline: none;
-            cursor: pointer;
-        }
-        
+        .controls { background: var(--bg-color); padding-top: 5px; }
         .input-row { display: flex; gap: 6px; align-items: center; }
-        textarea { flex: 1; height: 42px; font-size: 14px; padding: 8px; border: 1px solid #5a0f13; border-radius: 8px; background: #111111; color: #fff; resize: none; font-family: sans-serif; }
-        
+        textarea { flex: 1; height: 42px; font-size: 14px; padding: 8px; border: 1px solid var(--input-border); border-radius: 8px; background: #111111; color: #fff; resize: none; font-family: sans-serif; }
         .attach-btn { width: 42px; height: 42px; background: #1c1c1e; color: #fff; border: 1px solid #333; border-radius: 8px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        button.send-btn { width: 65px; height: 42px; font-size: 14px; background: #6b0c10; color: #fff; border: 1px solid #8f1318; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        button.send-btn { width: 65px; height: 42px; font-size: 14px; background: var(--btn-bg); color: #fff; border: 1px solid var(--btn-border); border-radius: 8px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="header">✨ Stacey & Ash Corner ✨</div>
 
-    <div id="chatbox"></div>
-
-    <div class="controls">
+    <div class="top-bar">
         <select id="username" onchange="getMessages()">
             <option value="ash" selected>ash</option>
             <option value="stacey">stacey</option>
         </select>
         
+        <select id="themeSelect" onchange="changeTheme(this.value)">
+            <option value="gothic">🔴 Gothic Dark</option>
+            <option value="cyber">🔵 Cyberpunk</option>
+            <option value="emerald">🟢 Emerald</option>
+        </select>
+    </div>
+
+    <div id="chatbox"></div>
+
+    <div class="controls">
         <div id="reply-preview">
             Replying to <b id="reply-user"></b>: <span id="reply-text-preview"></span>
             <span class="cancel-btn" onclick="cancelReply()">✕</span>
@@ -106,7 +145,6 @@
         <div class="input-row">
             <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(event)">
             <button class="attach-btn" onclick="document.getElementById('fileInput').click()">📎</button>
-            
             <textarea id="messageInput" placeholder="Type a message..." onkeydown="handleKeyDown(event)"></textarea>
             <button class="send-btn" onclick="sendMessage()">Send</button>
         </div>
@@ -127,6 +165,29 @@
         var activeReplyTo = null;
         var pendingFile = null;
         var isModalOpen = false;
+
+        function changeTheme(theme) {
+            document.body.className = '';
+            if (theme !== 'gothic') {
+                document.body.classList.add(theme);
+            }
+        }
+
+        function togglePicker(msgId) {
+            var picker = document.getElementById('picker-' + msgId);
+            if (picker) {
+                picker.style.display = (picker.style.display === 'flex') ? 'none' : 'flex';
+            }
+        }
+
+        function addReaction(msgId, emoji) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/react?id=' + msgId + '&emoji=' + encodeURIComponent(emoji), true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) getMessages();
+            };
+            xhr.send();
+        }
 
         function getMessages() {
             if (isModalOpen) return;
@@ -159,6 +220,22 @@
                             }
                         }
 
+                        var reactionsHtml = '<div class="reactions-wrapper">';
+                        if (msg.reactions) {
+                            for (var emoji in msg.reactions) {
+                                reactionsHtml += '<button class="react-btn">' + emoji + ' ' + msg.reactions[emoji] + '</button>';
+                            }
+                        }
+                        reactionsHtml += '<button class="react-btn react-add" onclick="togglePicker(\'' + msg.id + '\')">+❤️</button></div>';
+
+                        var pickerHtml = '<div id="picker-' + msg.id + '" class="react-picker">' +
+                            '<span onclick="addReaction(\'' + msg.id + '\', \'❤️\')">❤️</span>' +
+                            '<span onclick="addReaction(\'' + msg.id + '\', \'😂\')">😂</span>' +
+                            '<span onclick="addReaction(\'' + msg.id + '\', \'😮\')">😮</span>' +
+                            '<span onclick="addReaction(\'' + msg.id + '\', \'🔥\')">🔥</span>' +
+                            '<span onclick="addReaction(\'' + msg.id + '\', \'👍\')">👍</span>' +
+                        '</div>';
+
                         html += '<div class="msg-line ' + alignClass + '" id="msg-' + msg.id + '">' +
                                 '<div class="sender-name">' + msg.sender + '</div>' +
                                 '<div class="bubble" ' +
@@ -167,6 +244,7 @@
                                     'oncontextmenu="rightClickMenu(event, \'' + msg.id + '\', \'' + encodeURIComponent(msg.sender) + '\', \'' + encodeURIComponent(msg.text) + '\')">' +
                                     replyHtml + (msg.text ? msg.text : '') + fileHtml +
                                 '</div>' +
+                                reactionsHtml + pickerHtml +
                                 '</div>';
                     }
 
