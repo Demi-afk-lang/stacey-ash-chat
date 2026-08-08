@@ -107,16 +107,16 @@
         .msg-line { margin-bottom: 14px; clear: both; position: relative; }
         .msg-right { text-align: right; }
         .msg-right .sender-name { font-size: 11px; color: #a1a1a1; margin-bottom: 3px; font-weight: bold; }
-        .msg-right .bubble { display: inline-block; padding: 10px 14px; border-radius: 12px; font-size: 14px; background: var(--bubble-right-bg); color: var(--bubble-right-text); border: 1px solid var(--bubble-right-border); max-width: 70%; white-space: pre-wrap; word-wrap: break-word; text-align: right; }
+        .msg-right .bubble { display: inline-block; padding: 10px 14px; border-radius: 12px; font-size: 14px; background: var(--bubble-right-bg); color: var(--bubble-right-text); border: 1px solid var(--bubble-right-border); max-width: 75%; white-space: pre-wrap; word-wrap: break-word; text-align: right; }
         
         .msg-left { text-align: left; }
         .msg-left .sender-name { font-size: 11px; color: #a1a1a1; margin-bottom: 3px; font-weight: bold; }
-        .msg-left .bubble { display: inline-block; padding: 10px 14px; border-radius: 12px; font-size: 14px; background: var(--bubble-left-bg); color: var(--bubble-left-text); border: 1px solid var(--bubble-left-border); max-width: 70%; white-space: pre-wrap; word-wrap: break-word; text-align: left; }
+        .msg-left .bubble { display: inline-block; padding: 10px 14px; border-radius: 12px; font-size: 14px; background: var(--bubble-left-bg); color: var(--bubble-left-text); border: 1px solid var(--bubble-left-border); max-width: 75%; white-space: pre-wrap; word-wrap: break-word; text-align: left; }
 
         .reply-quote { background: rgba(0,0,0,0.3); border-left: 3px solid var(--header-color); padding: 4px 8px; margin-bottom: 6px; font-size: 12px; border-radius: 4px; color: #ccc; text-align: left; }
         
-        .chat-file-img { max-width: 100%; border-radius: 8px; margin-top: 5px; display: block; cursor: pointer; }
-        .chat-file-link { display: inline-block; background: rgba(255,255,255,0.1); padding: 6px 10px; border-radius: 6px; color: #64b5f6; text-decoration: none; font-size: 13px; margin-top: 5px; }
+        .chat-file-img { max-width: 100%; max-height: 250px; border-radius: 8px; margin-top: 6px; display: block; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); }
+        .chat-file-link { display: inline-block; background: rgba(255,255,255,0.1); padding: 6px 10px; border-radius: 6px; color: #64b5f6; text-decoration: none; font-size: 13px; margin-top: 6px; word-break: break-all; }
 
         .reactions-wrapper { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
         .msg-right .reactions-wrapper { justify-content: flex-end; }
@@ -198,7 +198,7 @@
         var activeReplyTo = null;
         var pendingFile = null;
         var isModalOpen = false;
-        var activePickerMsgId = null; // يحفظ معرف القائمة المفتوحة
+        var activePickerMsgId = null;
         var pickerTimeout = null;
 
         function changeTheme(theme) {
@@ -216,7 +216,6 @@
                 activePickerMsgId = msgId;
                 if (pickerTimeout) clearTimeout(pickerTimeout);
                 
-                // إغلاق القائمة تلقائياً بعد 5 ثواني (5000 مللي ثانية)
                 pickerTimeout = setTimeout(function() {
                     activePickerMsgId = null;
                     var picker = document.getElementById('picker-' + msgId);
@@ -264,11 +263,11 @@
                         }
 
                         var fileHtml = '';
-                        if (msg.file) {
+                        if (msg.file && msg.file.url) {
                             if (msg.file.type === 'image') {
-                                fileHtml = '<img src="' + msg.file.url + '" class="chat-file-img" onclick="window.open(this.src)" />';
+                                fileHtml = '<br><img src="' + msg.file.url + '" class="chat-file-img" onclick="window.open(this.src)" />';
                             } else {
-                                fileHtml = '<br><a href="' + msg.file.url + '" download="' + (msg.file.originalName || 'file') + '" class="chat-file-link">📁 Download: ' + (msg.file.originalName || 'Attachment') + '</a>';
+                                fileHtml = '<br><a href="' + msg.file.url + '" download="' + (msg.file.originalName || 'file') + '" class="chat-file-link">📁 ' + (msg.file.originalName || 'Download File') + '</a>';
                             }
                         }
 
@@ -294,9 +293,9 @@
                         html += '<div class="msg-line ' + alignClass + '" id="msg-' + msg.id + '">' +
                                 '<div class="sender-name">' + msg.sender + '</div>' +
                                 '<div class="bubble" ' +
-                                    'ontouchstart="startHold(event, \'' + msg.id + '\', \'' + encodeURIComponent(msg.sender) + '\', \'' + encodeURIComponent(msg.text) + '\')" ' +
+                                    'ontouchstart="startHold(event, \'' + msg.id + '\', \'' + encodeURIComponent(msg.sender) + '\', \'' + encodeURIComponent(msg.text || '') + '\')" ' +
                                     'ontouchend="cancelHold()" ' +
-                                    'oncontextmenu="rightClickMenu(event, \'' + msg.id + '\', \'' + encodeURIComponent(msg.sender) + '\', \'' + encodeURIComponent(msg.text) + '\')">' +
+                                    'oncontextmenu="rightClickMenu(event, \'' + msg.id + '\', \'' + encodeURIComponent(msg.sender) + '\', \'' + encodeURIComponent(msg.text || '') + '\')">' +
                                     replyHtml + (msg.text ? msg.text : '') + fileHtml +
                                 '</div>' +
                                 reactionsHtml + pickerHtml +
@@ -318,6 +317,11 @@
             var file = e.target.files[0];
             if (!file) return;
 
+            if (file.size > 4.5 * 1024 * 1024) {
+                alert('File size exceeds 4.5MB limit for serverless functions.');
+                return;
+            }
+
             var formData = new FormData();
             formData.append('file', file);
 
@@ -327,10 +331,15 @@
             var xhr = new XMLHttpRequest();
             xhr.open('POST', '/api/upload', true);
             xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    var res = JSON.parse(xhr.responseText);
-                    pendingFile = res;
-                    document.getElementById('attach-name').innerText = file.name;
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        var res = JSON.parse(xhr.responseText);
+                        pendingFile = res;
+                        document.getElementById('attach-name').innerText = file.name;
+                    } else {
+                        alert('Failed to upload file.');
+                        cancelAttachment();
+                    }
                 }
             };
             xhr.send(formData);

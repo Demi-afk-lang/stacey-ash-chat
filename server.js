@@ -4,44 +4,53 @@ const multer = require('multer');
 
 const app = express();
 
-// استخدام Memory Storage لضمان التوافق مع Vercel
+// إعداد multer بحجم أقصى 4.5MB لتوافق تام مع حدود Vercel Serverless
 const upload = multer({ 
     storage: multer.memoryStorage(),
-    limits: { fileSize: 10 * 1024 * 1024 } // 10 ميجابايت كحد أقصى
+    limits: { fileSize: 4.5 * 1024 * 1024 } 
 });
 
-// مصفوفة حفظ الرسائل في الذاكرة
 let messages = [];
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// زيادة حدود استلام الـ JSON ليتسع لبيانات Base64 للملفات والصور
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// جلب جميع الرسائل
 app.get('/api/messages', (req, res) => {
     res.json(messages);
 });
 
-// رفع الملفات وتحويلها لـ Base64
-app.post('/api/upload', upload.single('file'), (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+// مسار رفع الملفات وتحويلها لـ Base64 Data URL
+app.post('/api/upload', (req, res) => {
+    upload.single('file')(req, res, (err) => {
+        if (err) {
+            return res.status(400).json({ error: 'File too large or upload error' });
+        }
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
 
-    const mimeType = req.file.mimetype;
-    const base64 = req.file.buffer.toString('base64');
-    const fileUrl = `data:${mimeType};base64,${base64}`;
-    const fileType = mimeType.startsWith('image/') ? 'image' : 'file';
+        const mimeType = req.file.mimetype;
+        const base64 = req.file.buffer.toString('base64');
+        const fileUrl = `data:${mimeType};base64,${base64}`;
+        const fileType = mimeType.startsWith('image/') ? 'image' : 'file';
 
-    res.json({ url: fileUrl, type: fileType, originalName: req.file.originalname });
+        res.json({ 
+            url: fileUrl, 
+            type: fileType, 
+            originalName: req.file.originalname 
+        });
+    });
 });
 
-// إضافة رسالة جديدة
 app.post('/api/messages', (req, res) => {
     const { text, sender, replyTo, file } = req.body;
 
     if (text || file) {
         const newMsg = { 
             id: "m_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
-            sender: String(sender), 
+            sender: String(sender || 'Anonymous'), 
             text: text ? String(text) : '',
             file: file || null,
             replyTo: (replyTo && replyTo.text) ? replyTo : null,
@@ -52,7 +61,6 @@ app.post('/api/messages', (req, res) => {
     res.json({ status: 'ok' });
 });
 
-// إضافة تفاعل (Reaction) على رسالة
 app.post('/api/react', (req, res) => {
     const { id, emoji } = req.query;
     const msg = messages.find(m => String(m.id) === String(id));
@@ -63,16 +71,19 @@ app.post('/api/react', (req, res) => {
     res.json({ status: 'ok' });
 });
 
-// حذف رسالة
 app.post('/api/delete', (req, res) => {
     const targetId = String(req.query.id);
     messages = messages.filter(msg => String(msg.id) !== targetId);
     res.json({ status: 'ok' });
 });
 
-// توجيه المسار الرئيسي إلى الصفحة الرئيسية
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    const indexPath = path.join(__dirname, 'public', 'index.html');
+    res.sendFile(indexPath, (err) => {
+        if (err) {
+            res.sendFile(path.join(__dirname, 'index.html'));
+        }
+    });
 });
 
 module.exports = app;
