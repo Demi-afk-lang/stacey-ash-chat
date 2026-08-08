@@ -198,6 +198,8 @@
         var activeReplyTo = null;
         var pendingFile = null;
         var isModalOpen = false;
+        var activePickerMsgId = null; // يحفظ معرف القائمة المفتوحة
+        var pickerTimeout = null;
 
         function changeTheme(theme) {
             document.body.className = '';
@@ -207,13 +209,30 @@
         }
 
         function togglePicker(msgId) {
+            if (activePickerMsgId === msgId) {
+                activePickerMsgId = null;
+                if (pickerTimeout) clearTimeout(pickerTimeout);
+            } else {
+                activePickerMsgId = msgId;
+                if (pickerTimeout) clearTimeout(pickerTimeout);
+                
+                // إغلاق القائمة تلقائياً بعد 5 ثواني (5000 مللي ثانية)
+                pickerTimeout = setTimeout(function() {
+                    activePickerMsgId = null;
+                    var picker = document.getElementById('picker-' + msgId);
+                    if (picker) picker.style.display = 'none';
+                }, 5000);
+            }
+            
             var picker = document.getElementById('picker-' + msgId);
             if (picker) {
-                picker.style.display = (picker.style.display === 'flex') ? 'none' : 'flex';
+                picker.style.display = (activePickerMsgId === msgId) ? 'flex' : 'none';
             }
         }
 
         function addReaction(msgId, emoji) {
+            activePickerMsgId = null;
+            if (pickerTimeout) clearTimeout(pickerTimeout);
             var xhr = new XMLHttpRequest();
             xhr.open('POST', '/api/react?id=' + msgId + '&emoji=' + encodeURIComponent(emoji), true);
             xhr.onreadystatechange = function() {
@@ -261,7 +280,10 @@
                         }
                         reactionsHtml += '<button class="react-btn react-add" onclick="togglePicker(\'' + msg.id + '\')">+❤️</button></div>';
 
-                        var pickerHtml = '<div id="picker-' + msg.id + '" class="react-picker">' +
+                        var isPickerOpen = (activePickerMsgId === msg.id);
+                        var pickerStyle = isPickerOpen ? 'style="display: flex;"' : 'style="display: none;"';
+
+                        var pickerHtml = '<div id="picker-' + msg.id + '" class="react-picker" ' + pickerStyle + '>' +
                             '<span onclick="addReaction(\'' + msg.id + '\', \'❤️\')">❤️</span>' +
                             '<span onclick="addReaction(\'' + msg.id + '\', \'😂\')">😂</span>' +
                             '<span onclick="addReaction(\'' + msg.id + '\', \'😮\')">😮</span>' +
