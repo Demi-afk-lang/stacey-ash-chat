@@ -1,65 +1,71 @@
 const express = require('express');
-const multer = require('multer');
 const path = require('path');
+const multer = require('multer');
 
 const app = express();
 
-app.use(express.json());
-app.use(express.static('public'));
-
-// استخدام Memory Storage ليتوافق مع Serverless Environment
+// استخدام Memory Storage بدلاً من Disk Storage لتوافق Vercel
 const upload = multer({ 
     storage: multer.memoryStorage(),
-    limits: { fileSize: 4 * 1024 * 1024 } // 4MB Max
+    limits: { fileSize: 10 * 1024 * 1024 } // حد أقصى 10 ميجا
 });
 
+// مصفوفة الذاكرة لحفظ الرسائل مؤقتاً
 let messages = [];
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+
+// جلب الرسائل
 app.get('/api/messages', (req, res) => {
     res.json(messages);
 });
 
-app.post('/api/messages', upload.single('file'), (req, res) => {
-    const { sender, text } = req.body;
-    let fileData = null;
+// رفع الملفات وتحويلها لـ Base64 لتعمل بدون Storage محلي
+app.post('/api/upload', upload.single('file'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
-    if (req.file) {
-        // تحويل الملف لـ Base64 لعدم الحاجة للتخزين على الهارد
-        const mimeType = req.file.mimetype;
-        const base64 = req.file.buffer.toString('base64');
-        fileData = `data:${mimeType};base64,${base64}`;
+    const mimeType = req.file.mimetype;
+    const base64 = req.file.buffer.toString('base64');
+    const fileUrl = `data:${mimeType};base64,${base64}`;
+    const fileType = mimeType.startsWith('image/') ? 'image' : 'file';
+
+    res.json({ url: fileUrl, type: fileType, originalName: req.file.originalname });
+});
+
+// إضافة رسالة جديدة
+app.post('/api/messages', (req, res) => {
+    const { text, sender, replyTo, file } = req.body;
+
+    if (text || file) {
+        const newMsg = { 
+            id: "m_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+            sender: String(sender), 
+            text: text ? String(text) : '',
+            file: file || null,
+            replyTo: (replyTo && replyTo.text) ? replyTo : null
+        };
+        messages.push(newMsg);
     }
-
-    const newMessage = {
-        id: Date.now().toString(),
-        sender,
-        text: text || '',
-        file: fileData,
-        reactions: {}
-    };
-    messages.push(newMessage);
-    res.json({ success: true, message: newMessage });
+    res.json({ status: 'ok' });
 });
 
-app.post('/api/reactions', (req, res) => {
-    const { msgId, emoji } = req.body;
-    const msg = messages.find(m => m.id === msgId);
-    if (msg) {
-        msg.reactions[emoji] = (msg.reactions[emoji] || 0) + 1;
-    }
-    res.json({ success: true, reactions: msg ? msg.reactions : {} });
+// حذف رسالة
+app.post('/api/delete', (req, res) => {
+    const targetId = String(req.query.id);
+    messages = messages.filter(msg => String(msg.id) !== targetId);
+    res.json({ status: 'ok' });
 });
 
-app.delete('/api/messages', (req, res) => {
-    messages = [];
-    res.json({ success: true });
-});
+// توجيه المسار الرئيسي إلى الصفحة الرئيسية
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
 module.exports = app;
 
 if (require.main === module) {
-    const PORT = process.env.PORT || 5000;
+    const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }
