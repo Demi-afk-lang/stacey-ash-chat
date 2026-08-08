@@ -73,19 +73,12 @@
 
         .header { text-align: center; font-weight: bold; padding: 0 0 12px 0; font-size: 20px; color: var(--header-color); }
 
-        /* الشريحة العلوية مثل الصورة الثالثة تماماً */
         .top-bar { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
             margin-bottom: 12px; 
             width: 100%;
-        }
-
-        .top-bar-center {
-            display: flex;
-            gap: 10px;
-            align-items: center;
         }
 
         select#themeSelect, select#username {
@@ -100,18 +93,6 @@
             min-width: 120px;
         }
 
-        .clear-all-btn {
-            background: #161616;
-            border: 1px solid #333;
-            color: #aaa;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .clear-all-btn:hover { color: #ff3b30; border-color: #555; }
-
-        /* شات واسع على كامل مساحة الشاشة */
         #chatbox { 
             height: 60vh; 
             background: var(--bg-color); 
@@ -173,15 +154,11 @@
                 <option value="stacey">Stacey</option>
             </select>
             
-            <div class="top-bar-center">
-                <select id="themeSelect" onchange="changeTheme(this.value)">
-                    <option value="gothic">🔴 Gothic Dark</option>
-                    <option value="cyber">🔵 Cyberpunk</option>
-                    <option value="emerald">🟢 Emerald</option>
-                </select>
-            </div>
-
-            <button class="clear-all-btn" onclick="clearAllMessages()">🗑️ مسح</button>
+            <select id="themeSelect" onchange="changeTheme(this.value)">
+                <option value="gothic">🔴 Gothic Dark</option>
+                <option value="cyber">🔵 Cyberpunk</option>
+                <option value="emerald">🟢 Emerald</option>
+            </select>
         </div>
 
         <div id="chatbox"></div>
@@ -200,7 +177,7 @@
             <div class="input-row">
                 <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(event)">
                 <button class="attach-btn" onclick="document.getElementById('fileInput').click()">📎</button>
-                <textarea id="messageInput" placeholder="Roleplay اكتب رسالة... استخدم *الفعل* للـ" onkeydown="handleKeyDown(event)"></textarea>
+                <textarea id="messageInput" placeholder="Type a message..." onkeydown="handleKeyDown(event)"></textarea>
                 <button class="send-btn" onclick="sendMessage()">Send</button>
             </div>
         </div>
@@ -243,17 +220,6 @@
                 if (xhr.readyState === 4) getMessages();
             };
             xhr.send();
-        }
-
-        function clearAllMessages() {
-            if (confirm("هل أنت تأكد أنك تريد مسح كافة الرسائل؟")) {
-                var xhr = new XMLHttpRequest();
-                xhr.open('POST', '/api/clear-all', true);
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState === 4) getMessages();
-                };
-                xhr.send();
-            }
         }
 
         function getMessages() {
